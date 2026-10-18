@@ -1,111 +1,67 @@
-# 上传到 GitHub 的步骤
+# 发布与更新说明
 
-## 0. 先解决网络问题（重要）
+## 仓库
 
-本机 `hosts` 文件把 GitHub 相关域名指向了 `127.0.0.1`，所以直连必然失败：
+<https://github.com/Nebula-gunmu/FloatingClock>
+
+- 主分支：`main`，当前版本提交 `6a86cf3`
+- 标签：`v1.0.0`
+- 共 55 个文件，其中 `release/` 下是两个可直接分发的压缩包
+
+## 下载地址
+
+| 版本 | 直链 |
+| --- | --- |
+| Windows 10 / 11 x64 | [FloatingClock-1.0.0-win64.zip](https://github.com/Nebula-gunmu/FloatingClock/raw/main/release/FloatingClock-1.0.0-win64.zip) |
+| Windows 7 SP1 x64 | [FloatingClock-1.0.0-win7-x64.zip](https://github.com/Nebula-gunmu/FloatingClock/raw/main/release/FloatingClock-1.0.0-win7-x64.zip) |
+
+下载后解压，双击 `FloatingClock.exe` 即可运行；不需要安装 Python / Qt / vcredist，也不需要联网。
+
+## 校验和
 
 ```
-127.0.0.1 github.dev
-127.0.0.1 api.github.com
-127.0.0.1 github.githubassets.com
-127.0.0.1 uploads.github.com
-127.0.0.1 raw.github.com
-127.0.0.1 githubusercontent.com
-127.0.0.1 raw.githubusercontent.com
-127.0.0.1 camo.githubusercontent.com
-127.0.0.1 cloud.githubusercontent.com
-127.0.0.1 avatars.githubusercontent.com
-...（还有 huggingface.co 等）
+436f9af1dad7431980e81b8e4f5ae7bf1cf41ebd66bda00817cf59a938b6efba  FloatingClock-1.0.0-win64.zip   (45.0 MB)
+7057145f5fe7b67c3f14840dd523432b1e36b93c4bba82bc078ba8645e3519ec  FloatingClock-1.0.0-win7-x64.zip (40.4 MB)
 ```
 
-这通常是某个"屏蔽/加速"工具或安全软件写入的。三种解决办法，任选一种：
+```powershell
+Get-FileHash .\FloatingClock-1.0.0-win64.zip -Algorithm SHA256
+```
 
-1. **清理 hosts**（推荐）：用管理员权限打开 `C:\Windows\System32\drivers\etc\hosts`，删除所有 `127.0.0.1` 开头的 GitHub 相关行，执行 `ipconfig /flushdns`。
-2. **用代理**：代理软件走自己的 DNS，不受 hosts 影响；给 git 配上 `git config --global http.proxy http://127.0.0.1:端口` 即可。
-3. **换一台能访问 GitHub 的电脑**：把本目录整体拷过去再上传。
+## 建议：建一个 Release
 
-清理后用 `curl -I https://github.com` 确认返回 200/301 再往下走。
+仓库里已有 tag `v1.0.0`，网页两步即可：
 
-## 1. 新建公开仓库
+1. 打开 <https://github.com/Nebula-gunmu/FloatingClock/releases/new?tag=v1.0.0>
+2. 标题填 `FloatingClock 1.0.0`，把 `release/` 里两个 zip 拖进附件区，Publish
 
-网页方式：<https://github.com/new> 填写
-- Repository name：`FloatingClock`
-- Public
-- **不要**勾选 "Add a README file"（本地已经有）
-- Create repository
+Release 附件下载比 raw 链接更稳定（raw 大文件偶尔会断），也方便别人一眼看到有成品。
 
-然后用其中一种方式上传。
-
-## 2. 方式 A：网页拖拽（不需要装 git）
-
-GitHub 网页单次上传上限 25 MB/文件，而两个 zip 分别是 45 MB 和 40 MB，**网页拖拽传不上去**。
-所以要么：
-
-- 把 zip 拆成 <25 MB 的分卷再传（不推荐，麻烦）；
-- 或者用 **Release 附件**（单文件上限 2 GB）：仓库页 → Releases → Draft a new release → Tag `v1.0.0` → 把两个 zip 拖进附件区 → Publish。
-
-源码（除 `dist/`、`dist-win7/`、`check/` 外）仍可以用网页 `Add file → Upload files` 拖上去。
-
-## 3. 方式 B：命令行（可传大文件，推荐）
+## 后续更新代码
 
 ```powershell
 cd "E:\DeepSeek\PC Time\FloatingClock"
 
-# 首次使用需要配置身份（只做一次）
-git config --global user.name  "你的名字"
-git config --global user.email "你的邮箱"
+# 改完代码后
+git add -A
+git commit -m "描述这次改动"
+git push
 
-# 初始化并提交（.gitignore 已排除 dist/、dist-win7/、check/ 等构建产物）
-git init
-git add .
-git commit -m "FloatingClock 1.0.0：iOS 风格 Windows 悬浮时钟（Win10/11 + Win7 双版本）"
-git branch -M main
-
-# 关联远程仓库（换成你自己的地址）
-git remote add origin https://github.com/你的用户名/FloatingClock.git
-
-# 推送（会要求输入用户名 + Personal Access Token 作为密码）
-git push -u origin main
+# 发新版本时
+git tag -a v1.0.1 -m "FloatingClock 1.0.1"
+git push origin v1.0.1
 ```
 
-推送时 GitHub 不再接受账号密码，密码位置请填 **Personal Access Token**（Settings → Developer settings → Personal access tokens → Fine-grained tokens，勾选该仓库的 `Contents: Read and write`）。
+重新构建成品后，把新的 zip 覆盖到 `release/` 再提交即可。
 
-如果网络需要代理：
+## 两个环境变量
+
+本机 `git` 使用自己的 DNS 解析器，**不受 hosts 屏蔽影响**（`curl` 和浏览器才受影响），所以推送不需要代理。若某天 `git push` 也失败，再考虑给 git 配代理：
 
 ```powershell
 git config --global http.proxy http://127.0.0.1:端口
-git config --global https.proxy http://127.0.0.1:端口
 ```
 
-## 4. 仓库里会包含什么
+## 仓库为什么不含 dist/
 
-```
-FloatingClock/
-├─ main.py                     源码入口
-├─ app/ core/ services/ ui/ winplatform/ tools/ resources/
-├─ FloatingClock.spec          打包配置（自动适配 PySide6 / PySide2）
-├─ requirements.txt
-├─ build.bat / build.ps1
-├─ README.md / 使用说明.md / 打包说明.md
-├─ UPLOAD.md                   本文件
-└─ release/
-   ├─ FloatingClock-1.0.0-win64.zip      45.0 MB   Win10/11 x64
-   ├─ FloatingClock-1.0.0-win7-x64.zip   40.4 MB   Win7 SP1 x64
-   └─ SHA256SUMS.txt
-```
-
-`dist/`（113 MB）与 `dist-win7/`（102 MB）已在 `.gitignore` 中排除——它们和 `release/` 里的 zip 内容一致，没必要重复进仓库。
-
-## 5. 校验和
-
-```
-436f9af1dad7431980e81b8e4f5ae7bf1cf41ebd66bda00817cf59a938b6efba  FloatingClock-1.0.0-win64.zip
-7057145f5fe7b67c3f14840dd523432b1e36b93c4bba82bc078ba8645e3519ec  FloatingClock-1.0.0-win7-x64.zip
-```
-
-下载后可用 `Get-FileHash .\FloatingClock-1.0.0-win64.zip -Algorithm SHA256` 对照。
-
-## 6. 建议补充（可选）
-
-- 仓库 About 里写：`iOS 风格 Windows 桌面悬浮时钟，支持 Win10/11 与 Win7，目录式打包免安装`
-- 打一个 tag `v1.0.0`，再基于 tag 建 Release，把两个 zip 作为附件，方便别人直接下载。
+`dist/`（113 MB）和 `dist-win7/`（102 MB）是构建产物，内容与 `release/` 里的 zip 重复，已在 `.gitignore` 中排除。想自己打包看 [打包说明.md](打包说明.md)。
