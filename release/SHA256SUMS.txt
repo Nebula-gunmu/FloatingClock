@@ -1,0 +1,2 @@
+﻿436f9af1dad7431980e81b8e4f5ae7bf1cf41ebd66bda00817cf59a938b6efba  FloatingClock-1.0.0-win64.zip  (45 MB)
+7057145f5fe7b67c3f14840dd523432b1e36b93c4bba82bc078ba8645e3519ec  FloatingClock-1.0.0-win7-x64.zip  (40.4 MB)
